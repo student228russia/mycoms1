@@ -1,0 +1,39 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Функция для вычисления многочлена Лагранжа
+def lagrange_interpolation(x_vals, y_vals, x):
+    n = len(x_vals)
+    result = 0
+    for i in range(n):
+        term = y_vals[i]
+        for j in range(n):
+            if i != j:
+                term *= (x - x_vals[j]) / (x_vals[i] - x_vals[j])
+        result += term
+    return result
+
+# Исходные табличные данные (пример)
+x_vals = np.array([-2, 0, 2, 4, 6])   # Исходные точки x
+y_vals = np.array([4, 1, 0, 3, 8])    # Исходные точки y
+
+# Границы интерполяции
+xmin, xmax = min(x_vals), max(x_vals)
+x_interp = np.linspace(xmin, xmax, 300)  # Много точек для красивого графика
+y_interp = [lagrange_interpolation(x_vals, y_vals, x) for x in x_interp]
+
+# Визуализация
+plt.figure(figsize=(8, 5))
+plt.scatter(x_vals, y_vals, color='red', label="Исходные точки")  # Табличные точки
+plt.plot(x_interp, y_interp, color='blue', label="Интерполяция Лагранжа")  # Кривая Лагранжа
+plt.xlabel("x")
+plt.ylabel("y")
+plt.title("Интерполяция многочленом Лагранжа")
+plt.legend()
+plt.grid()
+
+# Сохраняем график в файл на диск D
+plt.savefig("D:\\output.png")  # Используйте двойной слэш для Windows пути
+
+# Показываем график
+plt.show()

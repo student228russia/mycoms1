@@ -1,0 +1,100 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+
+# Пример функции и её производной для метода Ньютона
+def f(x):
+    return x ** 3 - 4 * x + 1  # Пример функции
+
+
+def df(x):
+    return 3 * x ** 2 - 4  # Производная функции
+
+
+# Метод Ньютона
+def newton_method(f, df, x0, tol=1e-6, max_iter=100):
+    x = x0
+    for _ in range(max_iter):
+        fx = f(x)
+        dfx = df(x)
+        if abs(fx) < tol:
+            return x
+        if dfx == 0:
+            print("Производная равна нулю, метод Ньютона не применим.")
+            return None
+        x = x - fx / dfx
+    print("Превышено количество итераций.")
+    return x
+
+
+# Метод половинного деления
+def bisection_method(f, a, b, tol=1e-6, max_iter=100):
+    if f(a) * f(b) > 0:
+        print("На отрезке нет корня или их несколько.")
+        return None, []
+
+    errors = []
+    for _ in range(max_iter):
+        c = (a + b) / 2
+        errors.append(abs(f(c)))
+
+        if abs(f(c)) < tol:
+            return c, errors
+        elif f(a) * f(c) < 0:
+            b = c
+        else:
+            a = c
+    print("Превышено количество итераций.")
+    return (a + b) / 2, errors
+
+
+# Заданные границы
+a, b = -3, 3  # Отрезок для поиска корня
+
+# Начальное приближение для метода Ньютона
+x0 = 2.0
+
+# Решение методом Ньютона
+root_newton = newton_method(f, df, x0)
+
+# Решение методом половинного деления
+root_bisection, errors = bisection_method(f, a, b)
+
+# Печать результатов
+print(f"Корень методом Ньютона: {root_newton}")
+print(f"Корень методом половинного деления: {root_bisection}")
+
+# Визуализация
+fig, axs = plt.subplots(2, 1, figsize=(8, 10))
+
+# График функции и найденных корней
+x_vals = np.linspace(-3, 3, 400)
+y_vals = f(x_vals)
+
+axs[0].plot(x_vals, y_vals, label=r'$f(x) = x^3 - 4x + 1$', color='blue')
+axs[0].axhline(0, color='black', linewidth=1)
+axs[0].axvline(0, color='black', linewidth=1)
+
+if root_newton is not None:
+    axs[0].plot(root_newton, f(root_newton), 'ro', label=f'Корень Ньютона: {root_newton:.6f}')
+if root_bisection is not None:
+    axs[0].plot(root_bisection, f(root_bisection), 'go', label=f'Корень Бисекции: {root_bisection:.6f}')
+
+axs[0].set_title("Функция f(x) и найденные корни")
+axs[0].set_xlabel("x")
+axs[0].set_ylabel("f(x)")
+axs[0].grid(True)
+axs[0].legend()
+
+# График изменения ошибки
+axs[1].plot(range(1, len(errors) + 1), errors, marker='o', linestyle='-', color='red', label="Погрешность")
+axs[1].set_title("Погрешность метода половинного деления")
+axs[1].set_xlabel("Шаг итерации")
+axs[1].set_ylabel("Ошибка |f(c)|")
+axs[1].grid(True)
+axs[1].legend()
+
+# Сохранение графика в PNG
+plt.tight_layout()
+plt.savefig("D:/root_finding.png")
+plt.show()
