@@ -1,67 +1,52 @@
 import numpy as np
 import matplotlib.pyplot as plt
-import random
-import time
 
-# Функция, которую интегрируем и дифференцируем
-def f(x):
-    return np.sin(x) + 0.5*x**2
 
-# Численная производная (метод разностных отношений)
-def numerical_derivative(f, x, h=1e-5):
-    return (f(x + h) - f(x - h)) / (2 * h)
+def monte_carlo_integration(func, a, b, num_points):
+    x_rand = np.random.uniform(a, b, num_points)
+    y_rand = np.random.uniform(0, 1, num_points)  # Подбор по оси Y
+    under_curve = y_rand < func(x_rand)
 
-# Метод Монте-Карло для интегрирования
-def monte_carlo_integration(f, a, b, num_points=1000):
-    x_random = np.random.uniform(a, b, num_points)  # Рандомные точки X
-    f_values = f(x_random)  # Значения функции в этих точках
-    integral = (b - a) * np.mean(f_values)  # Вычисление интеграла
-    return integral, x_random, f_values
+    integral = (b - a) * np.mean(under_curve)
+    return integral, x_rand, y_rand, under_curve
 
-# Задаём границы интегрирования
-a, b = 0, np.pi
 
-# Вычисляем интеграл методом Монте-Карло
-integral, x_mc, y_mc = monte_carlo_integration(f, a, b, num_points=500)
+# Функция, которую интегрируем (пример: e^(-x^2))
+def func(x):
+    return np.exp(-x ** 2)
 
-# Создаём массив X для построения графика
-x_vals = np.linspace(-1, np.pi + 1, 400)
-y_vals = f(x_vals)
-dy_vals = numerical_derivative(f, x_vals)
 
-# Выбираем случайный цвет для точек Монте-Карло
-random_color = (random.random(), random.random(), random.random())
+# 🔹 Пользовательский ввод количества точек
+num_points = int(input("Введите количество случайных точек: "))
 
-# Визуализация
-fig, ax = plt.subplots(figsize=(8, 6))
+# Параметры
+a, b = 0, 2  # Интервал интегрирования
 
-# График функции
-ax.plot(x_vals, y_vals, label=r'$f(x) = \sin(x) + 0.5x^2$', color='blue', linewidth=2)
+# Запуск метода Монте-Карло
+integral, x_rand, y_rand, under_curve = monte_carlo_integration(func, a, b, num_points)
 
-# График численной производной
-ax.plot(x_vals, dy_vals, label="Численная производная", color='red', linestyle='dashed', linewidth=2)
+# 📊 **Построение графика**
+plt.figure(figsize=(8, 6))
+x = np.linspace(a, b, 1000)
+plt.plot(x, func(x), 'r-', linewidth=2, label="f(x) = e^(-x²)")
 
-# Случайные точки Монте-Карло
-ax.scatter(x_mc, y_mc, color=random_color, s=10, alpha=0.5, label="Точки Монте-Карло")
+plt.scatter(x_rand[under_curve], y_rand[under_curve], color='blue', s=1, label="Точки под кривой")
+plt.scatter(x_rand[~under_curve], y_rand[~under_curve], color='red', s=1, label="Точки над кривой")
 
-# Границы интегрирования
-ax.axvline(a, color='black', linestyle='--', alpha=0.7)
-ax.axvline(b, color='black', linestyle='--', alpha=0.7)
+plt.xlabel("x")
+plt.ylabel("y")
+plt.legend()
+plt.title("Метод Монте-Карло для интегрирования")
+plt.grid()
 
-# Подписи
-ax.set_title("Метод Монте-Карло и численное дифференцирование")
-ax.set_xlabel("x")
-ax.set_ylabel("f(x) и f'(x)")
-ax.legend()
-ax.grid(True)
+# ✨ **Добавляем текст на график**
+plt.text(0.5, 0.5, f"Приближённое значение интеграла:\n{integral:.6f}\nКоличество точек: {num_points}",
+         fontsize=12, color="black", bbox=dict(facecolor='white', alpha=0.7))
 
-# Создаём уникальное имя файла, чтобы не перезаписывать старые файлы
-filename = f"D:/monte_carlo_{int(time.time())}.png"
+# 📁 **Сохранение графика в файл**
+plot_file = "D:/monte_carlo_plot.png"
+plt.savefig(plot_file, dpi=300)
 
-# Сохранение графика на диск D
-plt.savefig(filename)
+print(f"График с результатом сохранён в {plot_file}")
+
 plt.show()
-
-# Вывод результата интегрирования
-print(f"Приближённое значение интеграла методом Монте-Карло: {integral:.6f}")
-print(f"График сохранён как: {filename}")
