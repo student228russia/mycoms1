@@ -1,0 +1,72 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.optimize import fsolve
+
+# 🎯 ОДУ: dy/dx = -2y + x^2
+def f(x, y):
+    return -2 * y + x**2
+
+# 🎯 Точное решение (если известно)
+def y_exact(x):
+    return 0.25 * (x**2 - 2*x + 2) * np.exp(-2*x) + 0.25 * (x**2 + 2*x + 1)
+
+# 🎯 Неявный метод Эйлера
+def implicit_euler(f, x0, y0, h, x_end):
+    x_values = np.arange(x0, x_end + h, h)  # Шаги разбиения
+    y_values = np.zeros_like(x_values)
+    y_values[0] = y0  # Начальное условие
+
+    for i in range(1, len(x_values)):
+        x_n = x_values[i - 1]
+        y_n = y_values[i - 1]
+        x_next = x_values[i]
+
+        # Решаем уравнение y_next - y_n - h*f(x_next, y_next) = 0
+        def equation(y_next):
+            return y_next - y_n - h * f(x_next, y_next)
+
+        y_next_guess = y_n  # Начальное приближение
+        y_values[i] = fsolve(equation, y_next_guess)[0]  # Численное решение
+
+    return x_values, y_values
+
+# 🔹 Параметры задачи
+x0, y0 = 0, 1  # Начальное условие y(0) = 1
+x_end = 2       # Конечное значение x
+h = 0.2         # Основной шаг
+
+# 🔹 Вычисление численных решений
+x_h, y_h = implicit_euler(f, x0, y0, h, x_end)
+x_h2, y_h2 = implicit_euler(f, x0, y0, h / 2, x_end)  # h/2
+
+# 🔹 Точное решение
+x_exact = np.linspace(x0, x_end, 1000)
+y_exact_vals = y_exact(x_exact)
+
+# 🔹 Оценка фактического порядка точности
+error_h = np.abs(y_h2[::2] - y_h)  # Разница между h/2 и h
+order_accuracy = np.log2(np.mean(error_h[:-1] / error_h[1:]))  # Оценка порядка точности
+
+# 📊 **Построение графиков**
+plt.figure(figsize=(10, 6))
+plt.plot(x_exact, y_exact_vals, 'k-', label="Точное решение")
+plt.plot(x_h, y_h, 'ro-', label=f"Метод Эйлера (h={h})")
+plt.plot(x_h2, y_h2, 'bs--', label=f"Метод Эйлера (h={h/2})")
+
+plt.xlabel("x")
+plt.ylabel("y")
+plt.title("Численное решение ОДУ неявным методом Эйлера")
+plt.legend()
+plt.grid()
+
+# ✨ **Добавляем текст на график**
+plt.text(0.5, 0.3, f"Порядок точности: {order_accuracy:.2f}",
+         fontsize=12, color="black", bbox=dict(facecolor='white', alpha=0.7))
+
+# 📁 **Сохранение графика в файл**
+plot_file = "D:/implicit_euler_plot.png"
+plt.savefig(plot_file, dpi=300)
+
+print(f"График с результатом сохранён в {plot_file}")
+
+plt.show()
